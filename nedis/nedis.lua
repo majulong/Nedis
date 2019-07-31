@@ -149,10 +149,10 @@ local function get_all_curr_master()
 			-- 成功则跳出
 			break
 	    end
-    end
+        end
 
 	-- 获取当前sentinel_list内的所有master_name
-	local res, err = red:sentinel("masters")
+	local res, err = red:sentinel("slaves",mymaster)
 	if err then
 		ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",err)
 		return false
