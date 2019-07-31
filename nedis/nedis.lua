@@ -3,10 +3,6 @@ local redis = require "resty.redis"
 local ngx_balancer = require "ngx.balancer"
 local utils = require "nedis.utils.util"
 
--- 加载配置文件
-local conf_loader = require "nedis.conf_loader"
-local sentinel_list = conf_loader.sentinel_list
-
 local Nedis = {}
 
 local timer_at = ngx.timer.at
@@ -52,6 +48,8 @@ local function handle_sub(premature, host, port)
 		-- 动态增长
 		if retry_time < MAX_RETRY_TIME then
 			retry_time = retry_time * 2
+		else
+			Nedis.init_worker()
 		end
 		return
 	end
@@ -173,6 +171,25 @@ local function get_all_curr_master()
 		end
 	end
 
+	local slave, err = red:sentinel("slaves")
+	if err then
+		ngx.log(ngx.ERR,"redis execution [sentinel slave] error :",err)
+		return false
+	end
+	if slave then
+		for idx,value in ipairs(res) do
+			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
+			local name = value[2]
+			local ip = value[4]
+			local port = value[6]
+			local flags = value[10]
+			
+			log(DEBUG,"init worker,"..name.." current slave:", cjson.encode(value))
+			ngx.shared.nedis:set(name,ip..":"..port,0)
+			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
+		end
+	end
+
 	local ok, err = red:close()
 	if not ok then
 		log(ERR,"failed to close: ", err)
@@ -209,7 +226,6 @@ function Nedis.init()
 	-- ngx.conf.prefix 前缀路径 -p指定
 	
 	--local conf_path = pl_path.join(ngx.config.prefix(), "nedis.conf")
-	--local config = assert(conf_loader.load(conf_path))
 	--log(DEBUG,"conf :", cjson.encode(config))
 end
 
