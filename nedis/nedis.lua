@@ -172,13 +172,13 @@ local function get_all_curr_master()
 		end
 	end
 
-	local slave, err = red:sentinel("slaves")
+	local slave, err = red:sentinel("slave")
 	if err then
 		ngx.log(ngx.ERR,"redis execution [sentinel slave] error :",err)
 		return false
 	end
 	if slave then
-		for idx,value in ipairs(res) do
+		for idx,value in ipairs(slave) do
 			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
 			local name = value[2]
 			local ip = value[4]
