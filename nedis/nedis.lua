@@ -122,14 +122,14 @@ local function handle_sub(premature, host, port)
 
 end
 
-local function get_sentinel_master_addr(red, name )
-	local res, err = red:sentinel("get-master-addr-by-name",name)
-	if err then
-		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
-		return
-	end	
-	return res
-end
+-- local function get_sentinel_master_addr(red, name )
+-- 	local res, err = red:sentinel("get-master-addr-by-name",name)
+-- 	if err then
+-- 		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
+-- 		return
+-- 	end	
+-- 	return res
+-- end
 
 -- 获取sentinel下所有的master
 local function get_all_curr_master()
@@ -172,24 +172,24 @@ local function get_all_curr_master()
 		end
 	end
 
-	local slave, err = red:sentinel("slave")
-	if err then
-		ngx.log(ngx.ERR,"redis execution [sentinel slave] error :",err)
-		return false
-	end
-	if slave then
-		for idx,value in ipairs(slave) do
-			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
-			local name = value[2]
-			local ip = value[4]
-			local port = value[6]
-			local flags = value[10]
+-- 	local slave, err = red:sentinel("slave")
+-- 	if err then
+-- 		ngx.log(ngx.ERR,"redis execution [sentinel slave] error :",err)
+-- 		return false
+-- 	end
+-- 	if slave then
+-- 		for idx,value in ipairs(slave) do
+-- 			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
+-- 			local name = value[2]
+-- 			local ip = value[4]
+-- 			local port = value[6]
+-- 			local flags = value[10]
 			
-			log(DEBUG,"init worker,"..name.." current slave:", cjson.encode(value))
-			ngx.shared.nedis:set(name,ip..":"..port,0)
-			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-		end
-	end
+-- 			log(DEBUG,"init worker,"..name.." current slave:", cjson.encode(value))
+-- 			ngx.shared.nedis:set(name,ip..":"..port,0)
+-- 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
+-- 		end
+-- 	end
 
 	local ok, err = red:close()
 	if not ok then
