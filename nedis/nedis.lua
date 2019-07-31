@@ -158,6 +158,7 @@ local function get_all_curr_master()
 		return false
 	end
 	if res then
+		log(DEBUG,"redis execution [sentinel masters] res :",res)
 		for idx,value in ipairs(res) do
 			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
 			local name = value[2]
