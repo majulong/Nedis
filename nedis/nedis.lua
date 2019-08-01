@@ -3,6 +3,9 @@ local redis = require "resty.redis"
 local ngx_balancer = require "ngx.balancer"
 local utils = require "nedis.utils.util"
 
+local get_master = require("nedis.sentinel").get_master
+local get_slaves = require("nedis.sentinel").get_slaves
+
 local Nedis = {}
 
 local timer_at = ngx.timer.at
@@ -150,15 +153,15 @@ local function get_all_curr_master()
 			break
 	    end
         end
-	local res, err = get_sentinel_master_addr(red, mymaster)
+	-- local res, err = get_sentinel_master_addr(red, mymaster)
 	
-	if err then
-		ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",err)
-		return false
-	end
-	if res and res ~= ngx_null and res[1] and res[2] then
-	        log(DEBUG,"lua tcp socket read timed out."..res[1].."res", res[2])
-	end 
+	-- if err then
+	-- 	ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",err)
+	-- 	return false
+	-- end
+	-- if res and res ~= ngx_null and res[1] and res[2] then
+	--         log(DEBUG,"lua tcp socket read timed out."..res[1].."res", res[2])
+	-- end 
     
 		
 
@@ -182,25 +185,6 @@ local function get_all_curr_master()
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
 		end
 	end
-
--- 	local slave, err = red:sentinel("slave")
--- 	if err then
--- 		ngx.log(ngx.ERR,"redis execution [sentinel slave] error :",err)
--- 		return false
--- 	end
--- 	if slave then
--- 		for idx,value in ipairs(slave) do
--- 			-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
--- 			local name = value[2]
--- 			local ip = value[4]
--- 			local port = value[6]
--- 			local flags = value[10]
-			
--- 			log(DEBUG,"init worker,"..name.." current slave:", cjson.encode(value))
--- 			ngx.shared.nedis:set(name,ip..":"..port,0)
--- 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
--- 		end
--- 	end
 
 	local ok, err = red:close()
 	if not ok then
