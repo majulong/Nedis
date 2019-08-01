@@ -194,17 +194,7 @@ local function init_redis_link()
 		return
 	end
 	
-	local red = redis:new()
-	red:set_timeout(1000) -- 1 sec
 
-	local ok = get_sentinel_master_addr(red, mymaster)
-	if not ok then
-		-- 抛异常
-		log(CRIT,"fail to get master from the sentinel2.")
-		return
-	else 
-		return ok
-	end
 	
 	-- 创建定时任务订aaaaa阅sentinel failover消息
 	-- 有几个sentinel 就建立几个订阅
@@ -237,6 +227,17 @@ end
 
 -- 设置动态负载
 function Nedis.balancer(master_name)
+	ocal red = redis:new()
+	red:set_timeout(1000) -- 1 sec
+
+	local ok = get_sentinel_master_addr(red, master_name)
+	if not ok then
+		-- 抛异常
+		log(CRIT,"fail to get master from the sentinel2.")
+		return
+	else 
+		return ok
+	end
 	-- local port = ngx.var.server_port
 	-- local remote_ip = ngx.var.remote_addr
 	 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
