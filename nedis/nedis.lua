@@ -153,17 +153,6 @@ local function get_all_curr_master()
 			break
 	    end
         end
-	-- local res, err = get_sentinel_master_addr(red, mymaster)
-	
-	-- if err then
-	-- 	ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",err)
-	-- 	return false
-	-- end
-	-- if res and res ~= ngx_null and res[1] and res[2] then
-	--         log(DEBUG,"lua tcp socket read timed out."..res[1].."res", res[2])
-	-- end 
-    
-		
 
 	-- 获取当前sentinel_list内的所有master_name
 	local res, err = red:sentinel("masters", master_namdasdase )
@@ -205,6 +194,18 @@ local function init_redis_link()
 		return
 	end
 	
+	local red = redis:new()
+	red:set_timeout(1000) -- 1 sec
+
+	local ok = get_sentinel_master_addr(red, mymaster)
+	if not ok then
+		-- 抛异常
+		log(CRIT,"fail to get master from the sentinel2.")
+		return
+	else 
+		return ok
+	end
+	
 	-- 创建定时任务订aaaaa阅sentinel failover消息
 	-- 有几个sentinel 就建立几个订阅
 	for i, v in ipairs(sentinel_list) do
@@ -227,12 +228,6 @@ end
 
 function Nedis.init_worker()
 	
-	local slaves, err = get_slaves(sentinel_list, mymaster)
-	if not slaves then
-		return nil, err
-	else 
-		return slaves 
-	end
 
 	-- 从sentinel初始化当前链路信息
 	if 0 == ngx.worker.id() then
