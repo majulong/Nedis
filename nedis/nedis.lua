@@ -226,6 +226,14 @@ function Nedis.init()
 end
 
 function Nedis.init_worker()
+	
+	local slaves, err = get_slaves(sentinel_list, mymaster)
+	if not slaves then
+		return nil, err
+	else 
+		return slaves 
+	end
+
 	-- 从sentinel初始化当前链路信息
 	if 0 == ngx.worker.id() then
 		create_timer(0, init_redis_link)
