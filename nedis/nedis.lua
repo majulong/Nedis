@@ -122,14 +122,14 @@ local function handle_sub(premature, host, port)
 
 end
 
--- local function get_sentinel_master_addr(red, name )
--- 	local res, err = red:sentinel("get-master-addr-by-name",name)
--- 	if err then
--- 		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
--- 		return
--- 	end	
--- 	return res
--- end
+local function get_sentinel_master_addr(red, name )
+	local res, err = red:sentinel("get-master-addr-by-name",name)
+	if err then
+		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
+		return
+	end	
+	return res
+end
 
 -- 获取sentinel下所有的master
 local function get_all_curr_master()
@@ -150,6 +150,17 @@ local function get_all_curr_master()
 			break
 	    end
         end
+	local res, err = get_sentinel_master_addr(red, mymaster)
+	
+	if err then
+		ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",err)
+		return false
+	end
+	if res and res ~= ngx_null and res[1] and res[2] then
+	        log(DEBUG,"lua tcp socket read timed out."..res[1].."res", res[2])
+	end 
+    
+		
 
 	-- 获取当前sentinel_list内的所有master_name
 	local res, err = red:sentinel("masters", master_namdasdase )
