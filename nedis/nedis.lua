@@ -232,9 +232,9 @@ function Nedis.balancer(master_name)
 
 	local res,err = get_sentinel_master_addr(red, master_name)
 	if res and res ~= ngx_null and res[1] and res[2] then
-        	return { host = res[1], port = res[2] }
+        	log(DEBUG, "init redis link,current peer ",res[1],":",res[2])
    	else
-        	return nil, err
+        	log(ERR,"failed to set the current peer sentinel-test err message:",err)
    	end
 	-- local port = ngx.var.server_port
 	-- local remote_ip = ngx.var.remote_addr
