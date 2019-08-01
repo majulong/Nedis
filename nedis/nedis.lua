@@ -227,7 +227,7 @@ end
 
 -- 设置动态负载
 function Nedis.balancer(master_name)
-	ocal red = redis:new()
+	local red = redis:new()
 	red:set_timeout(1000) -- 1 sec
 
 	local ok = get_sentinel_master_addr(red, master_name)
