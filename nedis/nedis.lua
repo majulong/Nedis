@@ -216,17 +216,7 @@ function Nedis.init()
 	--log(DEBUG,"conf :", cjson.encode(config))
 end
 
-function Nedis.init_worker()
-	
-
-	-- 从sentinel初始化当前链路信息
-	if 0 == ngx.worker.id() then
-		create_timer(0, init_redis_link)
-	end
-end
-
--- 设置动态负载
-function Nedis.balancer(master_name)
+function Nedis.init_worker(master_name)
 	local red = redis:new()
 	red:set_timeout(1000) -- 1 sec
 
@@ -236,6 +226,16 @@ function Nedis.balancer(master_name)
    	else
         	log(ERR,"failed to set the current peer sentinel-test err message:",err)
    	end
+
+	-- 从sentinel初始化当前链路信息
+	if 0 == ngx.worker.id() then
+		create_timer(0, init_redis_link)
+	end
+end
+
+-- 设置动态负载
+function Nedis.balancer(master_name)
+
 	-- local port = ngx.var.server_port
 	-- local remote_ip = ngx.var.remote_addr
 	 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
