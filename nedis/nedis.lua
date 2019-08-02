@@ -178,7 +178,9 @@ local function get_all_curr_master()
 			
 			local res,err = get_sentinel_master_addr(red, name)
 			if res and res[1] and res[2] then
-				log(DEBUG, "init redis link,current peer ",res[1],":",res[2])
+				print("Hello, world!")
+				ngx.log(ngx.ERR,"redis execution [sentinel masters] error :",res[1])
+
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
