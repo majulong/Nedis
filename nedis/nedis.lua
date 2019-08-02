@@ -138,9 +138,17 @@ end
 local function get_all_curr_master()
 	local red = redis:new()
 	red:set_timeout(1000) -- 1 sec
-
+ 	local res,err = get_sentinel_master_addr(red, master_name)
+	if res and res[1] and res[2] then
+		log(DEBUG, "init redis link,current peer ",res[1],":",res[2])
+	else
+		log(ERR,"failed to set the current peer sentinel-test err message:",err)
+	end
 	-- 这可以随机连一个,考虑第一次连不上的情况
 	for i,v in ipairs(sentinel_list) do
+	    
+
+		
 	    local ok, err = red:connect(v[1], v[2])
 	    if err then
 			-- failed
@@ -218,12 +226,7 @@ end
 
 function Nedis.init_worker(master_name)
 	
-	local res,err = get_sentinel_master_addr(red, master_name)
-	if res and res ~= ngx_null and res[1] and res[2] then
-        	log(DEBUG, "init redis link,current peer ",res[1],":",res[2])
-   	else
-        	log(ERR,"failed to set the current peer sentinel-test err message:",err)
-   	end
+
 
 	-- 从sentinel初始化当前链路信息
 	if 0 == ngx.worker.id() then
