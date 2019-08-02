@@ -217,9 +217,7 @@ function Nedis.init()
 end
 
 function Nedis.init_worker(master_name)
-	local red = redis:new()
-	red:set_timeout(1000) -- 1 sec
-
+	
 	local res,err = get_sentinel_master_addr(red, master_name)
 	if res and res ~= ngx_null and res[1] and res[2] then
         	log(DEBUG, "init redis link,current peer ",res[1],":",res[2])
