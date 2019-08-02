@@ -126,7 +126,7 @@ local function handle_sub(premature, host, port)
 end
 
 local function get_sentinel_master_addr(red, name )
-	local res, err = red:sentinel("get-master-addr-by-name",name)
+	local res, err = red:sentinel("slaves",name)
 	if err then
 		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
 		return
