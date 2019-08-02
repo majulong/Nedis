@@ -140,14 +140,14 @@ local function handle_sub(premature, host, port)
 
 end
 
-local function get_sentinel_master_addr(red, name )
-	local res, err = red:sentinel("slaves",name)
-	if err then
-		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
-		return
-	end	
-	return res
-end
+-- local function get_sentinel_master_addr(red, name )
+-- 	local res, err = red:sentinel("slaves",name)
+-- 	if err then
+-- 		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
+-- 		return
+-- 	end	
+-- 	return res
+-- end
 
 -- 获取sentinel下所有的master
 local function get_all_curr_master()
@@ -194,6 +194,7 @@ local function get_all_curr_master()
 			local slaves,err = get_slaves(red, name)
 			if res then
 				tbl_sort(slaves, sort_by_localhost)
+				PrintTabel(slaves)
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
