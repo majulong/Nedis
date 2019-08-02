@@ -5,6 +5,12 @@ local utils = require "nedis.utils.util"
 
 local get_master = require("nedis.sentinel").get_master
 local get_slaves = require("nedis.sentinel").get_slaves
+local tbl_remove = table.remove
+local tbl_sort = table.sort
+local ok, tbl_new = pcall(require, "table.new")
+if not ok then
+    tbl_new = function (narr, nrec) return {} end -- luacheck: ignore 212
+end
 
 local Nedis = {}
 
@@ -33,6 +39,15 @@ local function create_timer(...)
   if not ok then
     log(ERR, "nedis not create timer: ", err)
   end
+end
+
+--sort by localhost
+local function sort_by_localhost(a, b)
+    if a.host == "127.0.0.1" and b.host ~= "127.0.0.1" then
+        return true
+    else
+        return false
+    end
 end
 
 -- 处理订阅
@@ -175,10 +190,10 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			
-			local res,err = get_slaves(red, name)
+			-- get slaves
+			local slaves,err = get_slaves(red, name)
 			if res then
-				print("Hello, world!:::",res)
+				tbl_sort(slaves, sort_by_localhost)
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
