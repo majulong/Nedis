@@ -176,9 +176,9 @@ local function get_all_curr_master()
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
 			
-			local res,err = get_sentinel_master_addr(red, name)
-			if res and res[1] and res[2] then
-				print("Hello, world!:::",res[1],":",res[2])
+			local res,err = get_slaves(red, name)
+			if res then
+				print("Hello, world!:::",res)
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
