@@ -222,7 +222,7 @@ local function get_all_curr_master()
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
 			local slaves, err = red:sentinel("slaves", name)
-			if slaves and type(slaves) == "table" then
+ 			if slaves and type(slaves) == "table" then
 				local hosts = tbl_new(#slaves, 0)
 				for _,slave in ipairs(slaves) do
 				    local num_recs = #slave
@@ -235,9 +235,8 @@ local function get_all_curr_master()
 					tbl_insert(hosts, host)
 					print(host.host)
 				    end
-			        end
-	`		end
-
+			        end		
+			end
 
 
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
@@ -251,7 +250,7 @@ local function get_all_curr_master()
 -- -- 					ngx.shared.nedis:set(host,ip..":"..port,0)
 -- -- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))
 -- 				end
-			end
+		
 		end
 
 	end
