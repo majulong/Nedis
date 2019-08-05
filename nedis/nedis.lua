@@ -219,12 +219,22 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			local slaves,err = get_slaves(red, mymaster)
+			local slaves,err = get_slaves(red, name)
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
 				log(DEBUG,"init worker, current master:", cjson.encode(slaves))
+-- 				for i,v in ipairs(slaves) do
+-- 				-- 1.name 3.ip 5.port 9.flags[s_down,master,disconnected]
+-- 				local name = value[2]
+-- 				local ip = value[4]
+-- 				local port = value[6]
+-- 				local flags = value[10]
 
+-- 				log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
+-- 				ngx.shared.nedis:set(name,ip..":"..port,0)
+-- 				log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))	
+			
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
