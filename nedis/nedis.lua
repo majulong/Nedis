@@ -221,18 +221,22 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			
-			local slaves,err = get_slaves(red, name)
-			if slaves then
-				--tbl_sort(slaves, sort_by_localhost)
-				--PrintTable(slaves)
-				print("mytable 的类型是 ",type(slaves))
-				for k,v in ipairs(slaves) do
-					print(k,v)
-				end
-
-				local num = tostring(slaves[1][2])
-				print(num)
+			local slaves, err = red:sentinel("slaves", name)
+			if slaves and type(slaves) == "table" then
+				local hosts = tbl_new(#slaves, 0)
+				for _,slave in ipairs(slaves) do
+				    local num_recs = #slave
+				    local host = tbl_new(0, num_recs + 1)
+				    for i = 1, num_recs, 2 do
+					host[slave[i]] = slave[i + 1]
+				    end
+				    if host["master-link-status"] == "ok" then
+					host.host = host.ip -- for parity with other functions
+					tbl_insert(hosts, host)
+					print(host.host)
+				    end
+			        end
+	`		end
 
 
 
