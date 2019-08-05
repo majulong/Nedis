@@ -41,6 +41,35 @@ local function create_timer(...)
   end
 end
 
+key = ""
+--print table
+function PrintTable(table , level)
+  level = level or 1
+  local indent = ""
+  for i = 1, level do
+    indent = indent.."  "
+  end
+
+  if key ~= "" then
+    print(indent..key.." ".."=".." ".."{")
+  else
+    print(indent .. "{")
+  end
+
+  key = ""
+  for k,v in pairs(table) do
+     if type(v) == "table" then
+        key = k
+        PrintTable(v, level + 1)
+     else
+        local content = string.format("%s%s = %s", indent .. "  ",tostring(k), tostring(v))
+      print(content)  
+      end
+  end
+  print(indent .. "}")
+
+end
+
 --sort by localhost
 local function sort_by_localhost(a, b)
     if a.host == "127.0.0.1" and b.host ~= "127.0.0.1" then
