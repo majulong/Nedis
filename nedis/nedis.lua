@@ -10,6 +10,10 @@ local ERR = ngx.ERR
 local NOTICE = ngx.NOTICE
 local DEBUG = ngx.DEBUG
 
+local ok, tbl_new = pcall(require, "table.new")
+if not ok then
+    tbl_new = function (narr, nrec) return {} end -- luacheck: ignore 212
+end
 -- 重试时间 每次*2
 local retry_time = 1
 -- 最大重试时间
