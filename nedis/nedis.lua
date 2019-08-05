@@ -226,17 +226,14 @@ local function get_all_curr_master()
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
-				print(slaves[1][2])
-				local indent = ""
-				  for k,v in pairs(table) do
-				     if type(v) == "table" then
-					print("hello")
-				     else
-					print("world")
-					local content = string.format("%s%s = %s", indent .. "  ",tostring(1), tostring(2))
-					print(content)  
-				      end
-				  end
+				print(slaves.ip)
+				for i, v in next, slaves do
+				    print(i, v)
+				    for n, k in next, v do
+					print(">", n, k)
+				    end
+				end
+
 
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 -- 				for i,v in ipairs(slaves) do
