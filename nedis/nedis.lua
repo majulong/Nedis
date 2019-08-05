@@ -24,7 +24,7 @@ local DEBUG = ngx.DEBUG
 -- 重试时间 每次*2
 local retry_time = 1
 -- 最大重试时间
-local MAX_RETRY_TIME = 1
+local MAX_RETRY_TIME = 60
 
 local set_current_peer = ngx_balancer.set_current_peer
 
