@@ -226,6 +226,17 @@ local function get_all_curr_master()
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
+				print(slaves[1][2])
+				  for k,v in pairs(table) do
+				     if type(v) == "table" then
+					print("hello")
+				     else
+					print("world")
+					local content = string.format("%s%s = %s", indent .. "  ",tostring(1), tostring(2))
+					print(content)  
+				      end
+				  end
+
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 -- 				for i,v in ipairs(slaves) do
 -- 					-- 1.host 3.link-pending-commands 5.master-link-status 
