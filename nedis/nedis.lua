@@ -232,7 +232,7 @@ local function get_all_curr_master()
 				    end
 				    if host["master-link-status"] == "ok" then
 					host.host = host.ip -- for parity with other functions
-					tbl_insert(hosts, host)
+					--tbl_insert(hosts, host)
 					print(host.host)
 				    end
 			        end		
