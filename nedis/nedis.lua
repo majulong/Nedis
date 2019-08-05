@@ -227,7 +227,7 @@ local function get_all_curr_master()
 				print(slaves[1][1])
 				
 				for i,v in pairs(slaves) do
-					print(i,v)
+					print(v[1])
 				end
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 -- 				for i,v in ipairs(slaves) do
