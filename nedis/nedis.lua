@@ -236,7 +236,7 @@ local function get_all_curr_master()
 					
 					print(host.host..":"..host.port)
 					ngx.shared.nedis:set(host,host.host..":"..host.port,0)
-- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))					
+ 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))					
 				    end
 			        end		
 			end
