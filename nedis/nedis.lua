@@ -224,16 +224,16 @@ local function get_all_curr_master()
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
-				log(DEBUG,"init worker, current master:", cjson.encode(slaves))
+				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 				for i,v in ipairs(slaves) do
 					-- 1.host 3.link-pending-commands 5.master-link-status 
-					local host = v[10]
-					local ip = v[30]
-					local port = v[12]
+					local host = v[1][1]
+-- 					local ip = v[30]
+-- 					local port = v[12]
 	-- 				local flags = value[10]
 					log(DEBUG,"init worker,"..host.." current slaves:", cjson.encode(v))
-					ngx.shared.nedis:set(host,ip..":"..port,0)
-					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))
+-- 					ngx.shared.nedis:set(host,ip..":"..port,0)
+-- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))
 				end
 			end
 		end
