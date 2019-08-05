@@ -235,8 +235,8 @@ local function get_all_curr_master()
 					--tbl_insert(hosts, host)
 					
 					print(host.host..":"..host.port)
-					ngx.shared.nedis:set(host,host.host..":"..host.port,0)
- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))					
+					ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
+ 					log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
 				    end
 			        end		
 			end
