@@ -59,9 +59,11 @@ function PrintTable(table , level)
   key = ""
   for k,v in pairs(table) do
      if type(v) == "table" then
+	print("hello")
         key = k
         PrintTable(v, level + 1)
      else
+	print("world")
         local content = string.format("%s%s = %s", indent .. "  ",tostring(k), tostring(v))
       print(content)  
       end
@@ -224,11 +226,6 @@ local function get_all_curr_master()
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
-				print(slaves[1][1])
-				
-				for i,v in pairs(slaves) do
-					print(v[2])
-				end
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 -- 				for i,v in ipairs(slaves) do
 -- 					-- 1.host 3.link-pending-commands 5.master-link-status 
