@@ -2,18 +2,7 @@ local cjson = require("cjson")
 local redis = require "resty.redis"
 local ngx_balancer = require "ngx.balancer"
 local utils = require "nedis.utils.util"
-
-local get_master = require("nedis.sentinel").get_master
-local get_slaves = require("nedis.sentinel").get_slaves
-local tbl_remove = table.remove
-local tbl_sort = table.sort
-local ok, tbl_new = pcall(require, "table.new")
-if not ok then
-    tbl_new = function (narr, nrec) return {} end -- luacheck: ignore 212
-end
-
 local Nedis = {}
-
 local timer_at = ngx.timer.at
 local ngx_log = ngx.log
 local CRIT = ngx.CRIT
@@ -24,7 +13,7 @@ local DEBUG = ngx.DEBUG
 -- 重试时间 每次*2
 local retry_time = 1
 -- 最大重试时间
-local MAX_RETRY_TIME = 1
+local MAX_RETRY_TIME = 6
 
 local set_current_peer = ngx_balancer.set_current_peer
 
@@ -40,47 +29,6 @@ local function create_timer(...)
     log(ERR, "nedis not create timer: ", err)
   end
 end
-
-key = ""
---print table
-function PrintTable(table , level)
-  level = level or 1
-  local indent = ""
-  for i = 1, level do
-    indent = indent.."  "
-  end
-
-  if key ~= "" then
-    print(indent..key.." ".."=".." ".."{")
-  else
-    print(indent .. "{")
-  end
-
-  key = ""
-  for k,v in pairs(table) do
-     if type(v) == "table" then
-	print("hello")
-        key = k
-        PrintTable(v, level + 1)
-     else
-	print("world")
-        local content = string.format("%s%s = %s", indent .. "  ",tostring(k), tostring(v))
-      print(content)  
-      end
-  end
-  print(indent .. "}")
-
-end
-
---sort by localhost
-local function sort_by_localhost(a, b)
-    if a.host == "127.0.0.1" and b.host ~= "127.0.0.1" then
-        return true
-    else
-        return false
-    end
-end
-
 -- 处理订阅
 local function handle_sub(premature, host, port)
 	-- 判断是否计时器提前执行,一般为重载配置或者关闭退出,在delay 0的时候 false
@@ -104,81 +52,72 @@ local function handle_sub(premature, host, port)
 	end
 
 	-- 加随机值,防止消息出错
-	red:set_timeout (300000 + math.random(2000,4000))
+-- 	red:set_timeout (300000 + math.random(2000,4000))
 
-	local res,err = red:subscribe("+switch-master")
-	if not res then
-		log(ERR,"redis sentinel subscribe [+switch-master] failed! err:",err,"host: ",host..":", port)
-	end
+-- 	local res,err = red:subscribe("+switch-master")
+-- 	if not res then
+-- 		log(ERR,"redis sentinel subscribe [+switch-master] failed! err:",err,"host: ",host..":", port)
+-- 	end
 
-	local function do_read_func(do_read)
-		if do_read ~= false then
-			log(DEBUG,"start read sentinel subscribe.","host: ",host..":", port)
-			res, err = red:read_reply()
-			if err then
-				return nil, err
-			end
-			return res, nil
-		end
-	    -- 取消订阅
-	    red:unsubscribe("+switch-master")
-	    -- 回连接池
-	    red:set_keepalive(1000,10)
-	    return
-	end
+-- 	local function do_read_func(do_read)
+-- 		if do_read ~= false then
+-- 			log(DEBUG,"start read sentinel subscribe.","host: ",host..":", port)
+-- 			res, err = red:read_reply()
+-- 			if err then
+-- 				return nil, err
+-- 			end
+-- 			return res, nil
+-- 		end
+-- 	    -- 取消订阅
+-- 	    red:unsubscribe("+switch-master")
+-- 	    -- 回连接池
+-- 	    red:set_keepalive(1000,10)
+-- 	    return
+-- 	end
 
 	-- 循环阻塞接收订阅消息
-	while true do
-		local res, err = do_read_func()
-		if err == "timeout" then
-			-- 处理timeout错误,判断下是否reload
-			log(DEBUG,"lua tcp socket read timed out.")
-		elseif err == "closed" then
+-- 	while true do
+-- 		local res, err = do_read_func()
+-- 		if err == "timeout" then
+-- 			-- 处理timeout错误,判断下是否reload
+-- 			log(DEBUG,"lua tcp socket read timed out.")
+-- 		elseif err == "closed" then
 
-			log(ERR,"sentinel nodes is lost.", host..":", port)
-		    create_timer(1, handle_sub, host, port)
-			break
-		elseif err then
-			-- 处理其他错误
-			log(ngx.CRIT,"do_read_fun;read_reply error! message:",err,"host: ",host..":", port)
-			do_read_func(false)
-			break
-		end
-		if res then
-			-- 取到master变化通知
-			log(DEBUG,"host: ",host..":", port, " received sentinel +switch-master message:",cjson.encode(res))
-			-- 结果长度一定为3
-			local master_info = utils.split(res[3]," ")
-			-- 判断ip端口和之前是否一致
-			local backend = master_info[4]..":"..master_info[5]
-			if backend ~= ngx.shared.nedis:get(master_info[1]) then
-				ngx.shared.nedis:set(master_info[1], backend, 0)
-				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))			
-			else
-				log(DEBUG, master_info[1].."Has been failover by other threads, current addr:", ngx.shared.nedis:get(master_info[1]))	
-			end
-		end
-		-- 检测下是否reload或者退出，防止worker进程出现down
-		local exit_sign = ngx.worker.exiting()
-		if exit_sign then
-			log(DEBUG,"exit signal detected,break while!")
-			-- worker退出跳出循环
-			do_read_func(false)
-			break
-		end
+-- 			log(ERR,"sentinel nodes is lost.", host..":", port)
+-- 		    create_timer(1, handle_sub, host, port)
+-- 			break
+-- 		elseif err then
+-- 			-- 处理其他错误
+-- 			log(ngx.CRIT,"do_read_fun;read_reply error! message:",err,"host: ",host..":", port)
+-- 			do_read_func(false)
+-- 			break
+-- 		end
+-- 		if res then
+-- 			-- 取到master变化通知
+-- 			log(DEBUG,"host: ",host..":", port, " received sentinel +switch-master message:",cjson.encode(res))
+-- 			-- 结果长度一定为3
+-- 			local master_info = utils.split(res[3]," ")
+-- 			-- 判断ip端口和之前是否一致
+-- 			local backend = master_info[4]..":"..master_info[5]
+-- 			if backend ~= ngx.shared.nedis:get(master_info[1]) then
+-- 				ngx.shared.nedis:set(master_info[1], backend, 0)
+-- 				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))			
+-- 			else
+-- 				log(DEBUG, master_info[1].."Has been failover by other threads, current addr:", ngx.shared.nedis:get(master_info[1]))	
+-- 			end
+-- 		end
+-- 		-- 检测下是否reload或者退出，防止worker进程出现down
+-- 		local exit_sign = ngx.worker.exiting()
+-- 		if exit_sign then
+-- 			log(DEBUG,"exit signal detected,break while!")
+-- 			-- worker退出跳出循环
+-- 			do_read_func(false)
+-- 			break
+-- 		end
 
-	end  --while
+-- 	end  --while
 
 end
-
--- local function get_sentinel_master_addr(red, name )
--- 	local res, err = red:sentinel("slaves",name)
--- 	if err then
--- 		ngx.log(ngx.ERR,"redis get-master-addr-by-name ["..name.."] error :",err)
--- 		return
--- 	end	
--- 	return res
--- end
 
 -- 获取sentinel下所有的master
 local function get_all_curr_master()
