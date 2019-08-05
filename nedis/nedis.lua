@@ -226,7 +226,7 @@ local function get_all_curr_master()
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
-				num=tostring(slaves[1][2])
+				local num = tostring(slaves[1][2])
 				print(num)
 
 
