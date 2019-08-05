@@ -233,7 +233,10 @@ local function get_all_curr_master()
 				    if host["master-link-status"] == "ok" then
 					host.host = host.ip -- for parity with other functions
 					--tbl_insert(hosts, host)
-					print(host.host)
+					
+					print(host.host..":"..host.port)
+					ngx.shared.nedis:set(host,host.host..":"..host.port,0)
+- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))					
 				    end
 			        end		
 			end
