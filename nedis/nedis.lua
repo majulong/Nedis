@@ -225,7 +225,12 @@ local function get_all_curr_master()
 			local slaves,err = get_slaves(red, name)
 			if slaves then
 				--tbl_sort(slaves, sort_by_localhost)
-				PrintTable(slaves)
+				--PrintTable(slaves)
+				print("mytable 的类型是 ",type(slaves))
+				for k,v in ipairs(slaves) do
+					print(k,v)
+				end
+
 				local num = tostring(slaves[1][2])
 				print(num)
 
