@@ -222,8 +222,10 @@ local function get_all_curr_master()
 			-- get slaves
 			local slaves,err = get_slaves(red, name)
 			if res then
-				tbl_sort(slaves, sort_by_localhost)
+				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
+				log(DEBUG,"init worker, current master:", cjson.encode(slaves))
+
 			else
 				log(ERR,"failed to set the current peer sentinel-test err message:",err)
 			end
