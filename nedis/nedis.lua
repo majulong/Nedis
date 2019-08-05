@@ -227,6 +227,7 @@ local function get_all_curr_master()
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
 				print(slaves[1][2])
+				local indent = ""
 				  for k,v in pairs(table) do
 				     if type(v) == "table" then
 					print("hello")
