@@ -24,7 +24,7 @@ local DEBUG = ngx.DEBUG
 -- 重试时间 每次*2
 local retry_time = 1
 -- 最大重试时间
-local MAX_RETRY_TIME = 64
+local MAX_RETRY_TIME = 1
 
 local set_current_peer = ngx_balancer.set_current_peer
 
@@ -324,5 +324,16 @@ function Nedis.balancer(master_name)
 	 end
 	 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
 end
+
+-- function Nedis.Slavebalancer(slave_name)
+	
+-- 	 local backend = utils.split(ngx.shared.nedis:get(slave_name),":")
+-- 	 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
+-- 	 if not ok then
+-- 	     log(ERR,"failed to set the current peer sentinel-test err message:",err)
+-- 	     return
+-- 	 end
+-- 	 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
+-- end
 
 return Nedis
