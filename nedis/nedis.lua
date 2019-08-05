@@ -225,6 +225,10 @@ local function get_all_curr_master()
 				--tbl_sort(slaves, sort_by_localhost)
 				PrintTable(slaves)
 				print(slaves[1][1])
+				
+				for i,v in pairs(slaves) do
+					print(i,v)
+				end
 				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
 -- 				for i,v in ipairs(slaves) do
 -- 					-- 1.host 3.link-pending-commands 5.master-link-status 
