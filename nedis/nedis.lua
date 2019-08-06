@@ -9,7 +9,6 @@ local CRIT = ngx.CRIT
 local ERR = ngx.ERR
 local NOTICE = ngx.NOTICE
 local DEBUG = ngx.DEBUG
-
 local ok, tbl_new = pcall(require, "table.new")
 if not ok then
     tbl_new = function (narr, nrec) return {} end -- luacheck: ignore 212
@@ -17,15 +16,12 @@ end
 -- 重试时间 每次*2
 local retry_time = 1
 -- 最大重试时间
-local MAX_RETRY_TIME = 6
-
+local MAX_RETRY_TIME = 60
 local set_current_peer = ngx_balancer.set_current_peer
-
 -- 日志包装
 local function log(lvl, ...)
   ngx_log(lvl, "[nedis] ", ...)
 end
-
 -- 创建定时器
 local function create_timer(...)
   local ok, err = timer_at(...)
@@ -33,13 +29,33 @@ local function create_timer(...)
     log(ERR, "nedis not create timer: ", err)
   end
 end
+--get slaves
+local function get_slave(red, name)
+	local slaves, err = red:sentinel("slaves", name)
+	if slaves and type(slaves) == "table" then
+		local hosts = tbl_new(#slaves, 0)
+		for _,slave in ipairs(slaves) do
+		    local num_recs = #slave
+		    local host = tbl_new(0, num_recs + 1)
+		    for i = 1, num_recs, 2 do
+			host[slave[i]] = slave[i + 1]
+		    end
+		    if host["master-link-status"] == "ok" then
+			host.host = host.ip -- for parity with other functions
+			--tbl_insert(hosts, host)
+			print(host.host..":"..host.port)
+			ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
+			log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
+		    end
+		end		
+	end
+end
 -- 处理订阅
 local function handle_sub(premature, host, port)
 	-- 判断是否计时器提前执行,一般为重载配置或者关闭退出,在delay 0的时候 false
 	if premature then
 		return
 	end
-
 	local red = redis:new()
 	local ok, err = red:connect(host, port)
 	if err then
@@ -128,12 +144,8 @@ end
 local function get_all_curr_master()
 	local red = redis:new()
 	red:set_timeout(1000) -- 1 sec
- 
 	-- 这可以随机连一个,考虑第一次连不上的情况
 	for i,v in ipairs(sentinel_list) do
-	    
-
-		
 	    local ok, err = red:connect(v[1], v[2])
 	    if err then
 			-- failed
@@ -146,7 +158,6 @@ local function get_all_curr_master()
 			break
 	    end
         end
-
 	-- 获取当前sentinel_list内的所有master_name
 	local res, err = red:sentinel("masters", master_namdasdase )
 	if err then
@@ -165,45 +176,10 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			local slaves, err = red:sentinel("slaves", name)
- 			if slaves and type(slaves) == "table" then
-				local hosts = tbl_new(#slaves, 0)
-				for _,slave in ipairs(slaves) do
-				    local num_recs = #slave
-				    local host = tbl_new(0, num_recs + 1)
-				    for i = 1, num_recs, 2 do
-					host[slave[i]] = slave[i + 1]
-				    end
-				    if host["master-link-status"] == "ok" then
-					host.host = host.ip -- for parity with other functions
-					--tbl_insert(hosts, host)
-					
-					print(host.host..":"..host.port)
-					ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
- 					log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
-				    end
-			        end		
-			end
-
-
-				--log(DEBUG,"init worker, current master:", cjson.encode(slaves))
--- 				for i,v in ipairs(slaves) do
--- 					-- 1.host 3.link-pending-commands 5.master-link-status 
--- 					local host = v[1][1]
--- -- 					local ip = v[30]
--- -- 					local port = v[12]
--- 	-- 				local flags = value[10]
--- 					log(DEBUG,"init worker,"..host.." current slaves:", cjson.encode(v))
--- -- 					ngx.shared.nedis:set(host,ip..":"..port,0)
--- -- 					log(NOTICE,host.." init slaves :",ngx.shared.nedis:get(host))
--- 				end
-		
+			get_slave(red,name)
 		end
 
 	end
-	-- get slaves
-
-
 	local ok, err = red:close()
 	if not ok then
 		log(ERR,"failed to close: ", err)
@@ -222,33 +198,21 @@ local function init_redis_link()
 		log(CRIT,"fail to get master from the sentinel.")
 		return
 	end
-	
-
-	
+		
 	-- 创建定时任务订aaaaa阅sentinel failover消息
 	-- 有几个sentinel 就建立几个订阅
 	for i, v in ipairs(sentinel_list) do
 		create_timer(0, handle_sub, v[1], v[2])
 	end
 
-	--create_timer(0, handle_sub, "127.0.0.1", 6403)
-	--create_timer(0, handle_sub, "127.0.0.1", 6404)
-	--create_timer(0, handle_sub, "127.0.0.1", 6405)
 end
 
 -- master 进程初始化
 function Nedis.init()
 	local pl_path = require "luarocks.path"
-	-- ngx.conf.prefix 前缀路径 -p指定
-	
-	--local conf_path = pl_path.join(ngx.config.prefix(), "nedis.conf")
-	--log(DEBUG,"conf :", cjson.encode(config))
 end
 
 function Nedis.init_worker(master_name)
-	
-
-
 	-- 从sentinel初始化当前链路信息
 	if 0 == ngx.worker.id() then
 		create_timer(0, init_redis_link)
@@ -257,9 +221,6 @@ end
 
 -- 设置动态负载
 function Nedis.balancer(master_name)
-
-	-- local port = ngx.var.server_port
-	-- local remote_ip = ngx.var.remote_addr
 	 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
 	 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
 	 if not ok then
@@ -268,16 +229,5 @@ function Nedis.balancer(master_name)
 	 end
 	 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
 end
-
--- function Nedis.Slavebalancer(slave_name)
-	
--- 	 local backend = utils.split(ngx.shared.nedis:get(slave_name),":")
--- 	 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
--- 	 if not ok then
--- 	     log(ERR,"failed to set the current peer sentinel-test err message:",err)
--- 	     return
--- 	 end
--- 	 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
--- end
 
 return Nedis
