@@ -270,7 +270,8 @@ end
 -- 设置动态负载
 function Nedis.balancer(master_name)
 	if master_name == "slave" then
-		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
+		 local num = math.random(0,1)
+		 local backend = utils.split(ngx.shared.nedis:get(num),":")
 		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
 		 if not ok then
 		     log(ERR,"failed to set the current peer sentinel-test err message:",err)
