@@ -59,6 +59,7 @@ local function create_timer(...)
 end
 --get slaves
 local function get_slave(red, name)
+	local flag = 0
 	local slaves, err = red:sentinel("slaves", name)
 	if slaves and type(slaves) == "table" then
 		local hosts = tbl_new(#slaves, 0)
@@ -70,11 +71,11 @@ local function get_slave(red, name)
 		    end
 		    host.host = host.ip	
 		    tbl_insert(hosts, host)
-		    PrintTable(hosts)	
+		    --PrintTable(hosts)	
 		    print(host.host..":"..host.port)
--- 		    local flags = slave1
- 		    ngx.shared.nedis:set(host.host,host.host..":"..host.port,0)
-		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.host))					
+ 		    ngx.shared.nedis:set(flag,host.host..":"..host.port,0)
+		    log(NOTICE,flag.." init slaves :",ngx.shared.nedis:get(flag))	
+		    flag = flag + 1
 		end
 -- 		if hosts[1] ~= nil then -- Check if table is not nil.
 -- 		    PrintTable(hosts)	
