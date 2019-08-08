@@ -267,13 +267,25 @@ end
 
 -- 设置动态负载
 function Nedis.balancer(master_name)
-	 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
-	 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
-	 if not ok then
-	     log(ERR,"failed to set the current peer sentinel-test err message:",err)
-	     return
+	 local red = redis:new()
+	 if master_name == "slave" then
+		 get_slave(red, master_name)
+		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
+		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
+		 if not ok then
+		     log(ERR,"failed to set the current peer sentinel-test err message:",err)
+		     return
+		 end		
+		 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])		
+	 else		
+		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
+		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
+		 if not ok then
+		     log(ERR,"failed to set the current peer sentinel-test err message:",err)
+		     return
+		 end
+		 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
 	 end
-	 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
 end
 
 return Nedis
