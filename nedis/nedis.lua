@@ -23,6 +23,7 @@ local set_current_peer = ngx_balancer.set_current_peer
 local function log(lvl, ...)
   ngx_log(lvl, "[nedis] ", ...)
 end
+local key = ""
 function PrintTable(table , level)
   level = level or 1
   local indent = ""
