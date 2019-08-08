@@ -95,7 +95,11 @@ local function get_slave(red, name)
 -- 		local picked_value = hosts(value)
 -- 		print(tostring(picked_value))
 	end
+	print(flag)
+	return flag
 end
+
+local flag = get_slave(redis:new(), "mymaster")
 -- 处理订阅
 local function handle_sub(premature, host, port)
 	-- 判断是否计时器提前执行,一般为重载配置或者关闭退出,在delay 0的时候 false
@@ -270,6 +274,7 @@ end
 -- 设置动态负载
 function Nedis.balancer(master_name)
 	if master_name == "slave" then
+		 
 		 local num = math.random(0,1)
 		 local backend = utils.split(ngx.shared.nedis:get(num),":")
 		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
