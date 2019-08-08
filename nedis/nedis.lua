@@ -50,9 +50,12 @@ local function get_slave(red, name)
 		if hosts[1] ~= nil then -- Check if table is not nil.
 		    -- Pick random player
 		    local value = math.random(1,#hosts)
-		    local picked = hosts[value]
-
-		    print("I got player " .. tostring(picked))
+		    local picked = hosts[value]	
+		    local flags = slave
+		    local port = 6379	
+                    ngx.shared.nedis:set(flags,picked..":"..port,0)
+		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(flags)
+		    print("I got slave " .. tostring(picked))
 		else
 		    print("Table nil")
 		end
