@@ -41,6 +41,7 @@ local function get_slave(red, name)
 		    for i = 1, num_recs, 2 do
 			host[slave[i]] = slave[i + 1]
 		    end
+		    host.host = host.ip	
 		    tbl_insert(hosts, host.host)
 		    print(host.host..":"..host.port)
 -- 			ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
