@@ -59,8 +59,7 @@ local function create_timer(...)
   end
 end
 --get slaves
-local function get_slave(name)
-	local red = redis:new()
+local function get_slave(red, name)
 	local slaves, err = red:sentinel("slaves", name)
 	if slaves and type(slaves) == "table" then
 		local hosts = tbl_new(#slaves, 0)
@@ -83,7 +82,7 @@ local function get_slave(name)
 		    local picked = hosts[value]	
 		    local flags = "slave"
 		    local port = 6379	
-                    ngx.shared.nedis:set(flags,picked..":"..port,0)
+                    ngx.shared.nedis:set(flags,hosts,0)
 		    log(NOTICE,flags.." init slaves :",ngx.shared.nedis:get(flags))
 		    print("I got slave " .. tostring(picked))
 		else
@@ -167,7 +166,7 @@ local function handle_sub(premature, host, port)
 			if backend ~= ngx.shared.nedis:get(master_info[1]) then
 				ngx.shared.nedis:set(master_info[1], backend, 0)
 				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))
-				get_slave(master_info[1])
+				get_slave(red, master_info[1])
 				log(DEBUG, "slave changed!!!")
 
 			else
@@ -223,7 +222,7 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			get_slave(name)
+			get_slave(red, name)
 		end
 
 	end
@@ -269,8 +268,6 @@ end
 -- 设置动态负载
 function Nedis.balancer(master_name)
 	if master_name == "slave" then
-		
-		 get_slave(master_name)
 		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
 		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
 		 if not ok then
