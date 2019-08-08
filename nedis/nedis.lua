@@ -59,7 +59,7 @@ local function create_timer(...)
   end
 end
 --get slaves
-local function get_slave(red, name)
+local function get_slave(name)
 	local red = redis:new()
 	local slaves, err = red:sentinel("slaves", name)
 	if slaves and type(slaves) == "table" then
@@ -167,7 +167,7 @@ local function handle_sub(premature, host, port)
 			if backend ~= ngx.shared.nedis:get(master_info[1]) then
 				ngx.shared.nedis:set(master_info[1], backend, 0)
 				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))
-				get_slave(red,master_info[1])
+				get_slave(master_info[1])
 				log(DEBUG, "slave changed!!!")
 
 			else
@@ -223,7 +223,7 @@ local function get_all_curr_master()
 			log(DEBUG,"init worker,"..name.." current master:", cjson.encode(value))
 			ngx.shared.nedis:set(name,ip..":"..port,0)
 			log(NOTICE,name.." init route :",ngx.shared.nedis:get(name))
-			get_slave(red,name)
+			get_slave(name)
 		end
 
 	end
