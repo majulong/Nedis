@@ -41,11 +41,9 @@ function PrintTable(table , level)
   key = ""
   for k,v in pairs(table) do
      if type(v) == "table" then
-	print("hello")
         key = k
         PrintTable(v, level + 1)
      else
-	print("world")
         local content = string.format("%s%s = %s", indent .. "  ",tostring(k), tostring(v))
       print(content)  
       end
@@ -78,19 +76,19 @@ local function get_slave(red, name)
  		    ngx.shared.nedis:set(host.host,host.host..":"..host.port,0)
 		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.host))					
 		end
-		if hosts[1] ~= nil then -- Check if table is not nil.
-		    PrintTable(hosts)	
-		    -- Pick random player
-		    local value = math.random(#hosts)
-		    local picked = hosts[value]	
-		    local flags = "slave"
-		    local port = 6379	
-                    ngx.shared.nedis:set(flags,hosts,0)
-		    log(NOTICE,flags.." init slaves :",ngx.shared.nedis:get(flags))
-		    print("I got slave " .. tostring(picked))
-		else
-		    print("Table nil")
-		end
+-- 		if hosts[1] ~= nil then -- Check if table is not nil.
+-- 		    PrintTable(hosts)	
+-- 		    -- Pick random player
+-- 		    local value = math.random(#hosts)
+-- 		    local picked = hosts[value]	
+-- 		    local flags = "slave"
+-- 		    local port = 6379	
+--                     ngx.shared.nedis:set(flags,hosts,0)
+-- 		    log(NOTICE,flags.." init slaves :",ngx.shared.nedis:get(flags))
+-- 		    print("I got slave " .. tostring(picked))
+-- 		else
+-- 		    print("Table nil")
+-- 		end
 
 -- 		local value = math.random(#hosts)
 -- 		local picked_value = hosts(value)
