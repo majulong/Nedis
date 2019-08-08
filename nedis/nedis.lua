@@ -41,17 +41,24 @@ local function get_slave(red, name)
 		    for i = 1, num_recs, 2 do
 			host[slave[i]] = slave[i + 1]
 		    end
-		    if host["master-link-status"] == "ok" then
-			host.host = host.ip -- for parity with other functions
-			tbl_insert(hosts, host.host)
-			print(host.host..":"..host.port)
+		    tbl_insert(hosts, host.host)
+		    print(host.host..":"..host.port)
 -- 			ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
 -- 			log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
-		    end
 		end
-		local value = math.random(1,#hosts)
-		local picked_value = hosts(value)
-		print(tostring(picked_value))
+		if hosts[1] ~= nil then -- Check if table is not nil.
+		    -- Pick random player
+		    local value = math.random(1,#hosts)
+		    local picked = hosts[value]
+
+		    print("I got player " .. tostring(picked))
+		else
+		    print("Table nil")
+		end
+
+-- 		local value = math.random(#hosts)
+-- 		local picked_value = hosts(value)
+-- 		print(tostring(picked_value))
 	end
 end
 -- 处理订阅
