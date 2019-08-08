@@ -60,6 +60,7 @@ local function create_timer(...)
 end
 --get slaves
 local function get_slave(red, name)
+	local red = redis:new()
 	local slaves, err = red:sentinel("slaves", name)
 	if slaves and type(slaves) == "table" then
 		local hosts = tbl_new(#slaves, 0)
