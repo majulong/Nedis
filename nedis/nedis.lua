@@ -1,3 +1,4 @@
+
 local cjson = require("cjson")
 local redis = require "resty.redis"
 local ngx_balancer = require "ngx.balancer"
@@ -70,10 +71,12 @@ local function get_slave(red, name)
 			host[slave[i]] = slave[i + 1]
 		    end
 		    host.host = host.ip	
-		    tbl_insert(hosts, host.host)
+		    tbl_insert(hosts, host)
+		    PrintTable(hosts)	
 		    print(host.host..":"..host.port)
--- 			ngx.shared.nedis:set(host.flags,host.host..":"..host.port,0)
--- 			log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
+-- 		    local flags = slave1
+ 		    ngx.shared.nedis:set(host.host,host.host..":"..host.port,0)
+		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.host))					
 		end
 		if hosts[1] ~= nil then -- Check if table is not nil.
 		    PrintTable(hosts)	
