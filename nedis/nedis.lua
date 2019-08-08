@@ -23,6 +23,33 @@ local set_current_peer = ngx_balancer.set_current_peer
 local function log(lvl, ...)
   ngx_log(lvl, "[nedis] ", ...)
 end
+function PrintTable(table , level)
+  level = level or 1
+  local indent = ""
+  for i = 1, level do
+    indent = indent.."  "
+  end
+
+  if key ~= "" then
+    print(indent..key.." ".."=".." ".."{")
+  else
+    print(indent .. "{")
+  end
+
+  key = ""
+  for k,v in pairs(table) do
+     if type(v) == "table" then
+	print("hello")
+        key = k
+        PrintTable(v, level + 1)
+     else
+	print("world")
+        local content = string.format("%s%s = %s", indent .. "  ",tostring(k), tostring(v))
+      print(content)  
+      end
+  end
+  print(indent .. "}")
+end
 -- 创建定时器
 local function create_timer(...)
   local ok, err = timer_at(...)
@@ -48,6 +75,7 @@ local function get_slave(red, name)
 -- 			log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(host.flags))					
 		end
 		if hosts[1] ~= nil then -- Check if table is not nil.
+		    PrintTable(hosts)	
 		    -- Pick random player
 		    local value = math.random(#hosts)
 		    local picked = hosts[value]	
