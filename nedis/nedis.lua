@@ -49,7 +49,7 @@ local function get_slave(red, name)
 		end
 		if hosts[1] ~= nil then -- Check if table is not nil.
 		    -- Pick random player
-		    local value = math.random(1,#hosts)
+		    local value = math.random(#hosts)
 		    local picked = hosts[value]	
 		    local flags = "slave"
 		    local port = 6379	
