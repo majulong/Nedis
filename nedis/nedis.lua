@@ -54,7 +54,7 @@ local function get_slave(red, name)
 		    local flags = slave
 		    local port = 6379	
                     ngx.shared.nedis:set(flags,picked..":"..port,0)
-		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(flags)
+		    log(NOTICE,host.flags.." init slaves :",ngx.shared.nedis:get(flags))
 		    print("I got slave " .. tostring(picked))
 		else
 		    print("Table nil")
