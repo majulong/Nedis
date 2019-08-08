@@ -51,7 +51,7 @@ local function get_slave(red, name)
 		    -- Pick random player
 		    local value = math.random(1,#hosts)
 		    local picked = hosts[value]	
-		    local flags = slave
+		    local flags = "slave"
 		    local port = 6379	
                     ngx.shared.nedis:set(flags,picked..":"..port,0)
 		    log(NOTICE,flags.." init slaves :",ngx.shared.nedis:get(flags))
