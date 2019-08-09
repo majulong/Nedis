@@ -77,29 +77,12 @@ local function get_slave(red, name)
 		    log(NOTICE,flag.." init slaves :",ngx.shared.nedis:get(flag))	
 		    flag = flag + 1
 		end
--- 		if hosts[1] ~= nil then -- Check if table is not nil.
--- 		    PrintTable(hosts)	
--- 		    -- Pick random player
--- 		    local value = math.random(#hosts)
--- 		    local picked = hosts[value]	
--- 		    local flags = "slave"
--- 		    local port = 6379	
---                     ngx.shared.nedis:set(flags,hosts,0)
--- 		    log(NOTICE,flags.." init slaves :",ngx.shared.nedis:get(flags))
--- 		    print("I got slave " .. tostring(picked))
--- 		else
--- 		    print("Table nil")
--- 		end
-
--- 		local value = math.random(#hosts)
--- 		local picked_value = hosts(value)
--- 		print(tostring(picked_value))
+		local slave_num = "slave number"
+		ngx.shared.nedis:set(slave_num,flag,0)
+		log(NOTICE,slave_num.." init slaves :",ngx.shared.nedis:get(slave_num))	
 	end
-	print(flag)
-	return flag
 end
 
-local flag = get_slave(redis:new(), "mymaster")
 -- 处理订阅
 local function handle_sub(premature, host, port)
 	-- 判断是否计时器提前执行,一般为重载配置或者关闭退出,在delay 0的时候 false
@@ -275,7 +258,8 @@ end
 function Nedis.balancer(master_name)
 	if master_name == "slave" then
 		 
-		 local num = math.random(0,1)
+		 local slave_num = ngx.shared.nedis:get("slave number")
+		 local num = math.random(0,slave_num)
 		 local backend = utils.split(ngx.shared.nedis:get(num),":")
 		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
 		 if not ok then
