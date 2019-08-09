@@ -78,7 +78,7 @@ local function get_slave(red, name)
 		    flag = flag + 1
 		end
 		local slave_num = "slave number"
-		ngx.shared.nedis:set(slave_num,flag,0)
+		ngx.shared.nedis:set(slave_num,flag-1,0)
 		log(NOTICE,slave_num.." init slaves :",ngx.shared.nedis:get(slave_num))	
 	end
 end
