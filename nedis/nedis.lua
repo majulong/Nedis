@@ -158,8 +158,8 @@ local function handle_sub(premature, host, port)
 			if backend ~= ngx.shared.nedis:get(master_info[1]) then
 				ngx.shared.nedis:set(master_info[1], backend, 0)
 				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))
-				get_slave(red, master_info[1])
-				log(DEBUG, "slave changed!!!")
+-- 				get_slave(red, master_info[1])
+-- 				log(DEBUG, "slave changed!!!")
 			else
 				log(DEBUG, master_info[1].."Has been failover by other threads, current addr:", ngx.shared.nedis:get(master_info[1]))	
 			end
