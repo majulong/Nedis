@@ -78,7 +78,7 @@ local function get_slave(red, name)
 		    flag = flag + 1
 		end
 		--define the slave number by lua set function
-		local slave_num = "slave number"
+		local slave_num = "slave"
 		ngx.shared.nedis:set(slave_num,flag-1,0)
 		log(NOTICE,slave_num.." init slaves :",ngx.shared.nedis:get(slave_num))	
 	end
@@ -268,8 +268,7 @@ function Nedis.balancer(master_name)
 end
 
 function Nedis.slave_balancer(slave_name)
-	if master_name == "slave" then		 
-		 local slave_num = ngx.shared.nedis:get("slave number")
+		 local slave_num = ngx.shared.nedis:get(slave_name)
 		 local num = math.random(0,slave_num)
 		 local backend = utils.split(ngx.shared.nedis:get(num),":")
 		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
@@ -278,7 +277,6 @@ function Nedis.slave_balancer(slave_name)
 		     return
 		 end		
 		 log(DEBUG, "redis slave link,current peer ",backend[1],":",backend[2])		
-	end
 end
 
 return Nedis
