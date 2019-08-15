@@ -96,7 +96,6 @@ local function handle_sub(premature, host, port)
 		log(ngx.DEBUG,"redis sentinel lost connection! err:", err, " host =>"..host..":", port," retry_time:",retry_time)
 		-- 处理sentinel连接掉线错误 1秒 2秒 4秒 8秒 16秒 32秒 64秒
 		create_timer(retry_time, handle_sub, host, port)
-		get_slave(red, "mymaster")
 		-- 动态增长
 		if retry_time < MAX_RETRY_TIME then
 			retry_time = retry_time * 2
@@ -107,7 +106,11 @@ local function handle_sub(premature, host, port)
 		end
  		return
 	end
-	
+
+	if ok then
+		get_slave(red, "mymaster")
+
+	end
 
 	-- 加随机值,防止消息出错
 	red:set_timeout (300000 + math.random(2000,4000))
