@@ -74,13 +74,13 @@ local function get_slave(red, name)
 		    print(host.host..":"..host.port)
 			--from 0 to slave number, set the slaves
  		    ngx.shared.nedis:set(flag,host.host..":"..host.port,0)
-		    log(NOTICE,flag.." init slaves :",ngx.shared.nedis:get(flag))	
+		    log(NOTICE,flag.." slaves :",ngx.shared.nedis:get(flag))	
 		    flag = flag + 1
 		end
 		--define the slave number by lua set function
 		local slave_num = "slave"
 		ngx.shared.nedis:set(slave_num,flag-1,0)
-		log(NOTICE,slave_num.." init slaves :",ngx.shared.nedis:get(slave_num))	
+		log(NOTICE,slave_num.." slaves :",ngx.shared.nedis:get(slave_num))	
 	end
 end
 
@@ -96,16 +96,18 @@ local function handle_sub(premature, host, port)
 		log(ngx.DEBUG,"redis sentinel lost connection! err:", err, " host =>"..host..":", port," retry_time:",retry_time)
 		-- 处理sentinel连接掉线错误 1秒 2秒 4秒 8秒 16秒 32秒 64秒
 		create_timer(retry_time, handle_sub, host, port)
+		get_slave(red, "mymaster")
 		-- 动态增长
 		if retry_time < MAX_RETRY_TIME then
 			retry_time = retry_time * 2
 		else
 		--over 1 min nedis reconnect
-			log(DEBUG,"already 1 min don't connect sentinel, reconnect sentinel!!!")
+			log(DEBUG,"already 1 min don't connect sentinel, force reconnect sentinel!!!")
 			Nedis.init_worker()
 		end
-		return
+ 		return
 	end
+	
 
 	-- 加随机值,防止消息出错
 	red:set_timeout (300000 + math.random(2000,4000))
