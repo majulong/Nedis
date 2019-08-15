@@ -71,12 +71,13 @@ local function get_slave(red, name)
 		    end
 		    host.host = host.ip	
 		    tbl_insert(hosts, host)
-		    --PrintTable(hosts)	
 		    print(host.host..":"..host.port)
+			--from 0 to slave number, set the slaves
  		    ngx.shared.nedis:set(flag,host.host..":"..host.port,0)
 		    log(NOTICE,flag.." init slaves :",ngx.shared.nedis:get(flag))	
 		    flag = flag + 1
 		end
+		--define the slave number by lua set function
 		local slave_num = "slave number"
 		ngx.shared.nedis:set(slave_num,flag-1,0)
 		log(NOTICE,slave_num.." init slaves :",ngx.shared.nedis:get(slave_num))	
@@ -99,6 +100,8 @@ local function handle_sub(premature, host, port)
 		if retry_time < MAX_RETRY_TIME then
 			retry_time = retry_time * 2
 		else
+		--over 1 min nedis reconnect
+			log(DEBUG,"already 1 min don't connect sentinel, reconnect sentinel!!!")
 			Nedis.init_worker()
 		end
 		return
@@ -157,7 +160,6 @@ local function handle_sub(premature, host, port)
 				log(DEBUG, master_info[1].." success failover current addr:", ngx.shared.nedis:get(master_info[1]))
 				get_slave(red, master_info[1])
 				log(DEBUG, "slave changed!!!")
-
 			else
 				log(DEBUG, master_info[1].."Has been failover by other threads, current addr:", ngx.shared.nedis:get(master_info[1]))	
 			end
@@ -255,9 +257,18 @@ function Nedis.init_worker(master_name)
 end
 
 -- 设置动态负载
-function Nedis.balancer(master_name)
-	if master_name == "slave" then
-		 
+function Nedis.balancer(master_name)	
+		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
+		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
+		 if not ok then
+		     log(ERR,"failed to set the current master peer sentinel-test err message:",err)
+		     return
+		 end
+		 log(DEBUG, "redis master link,current peer ",backend[1],":",backend[2])
+end
+
+function Nedis.slave_balancer(slave_name)
+	if master_name == "slave" then		 
 		 local slave_num = ngx.shared.nedis:get("slave number")
 		 local num = math.random(0,slave_num)
 		 local backend = utils.split(ngx.shared.nedis:get(num),":")
@@ -266,16 +277,8 @@ function Nedis.balancer(master_name)
 		     log(ERR,"failed to set the current peer sentinel-test err message:",err)
 		     return
 		 end		
-		 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])		
-	 else		
-		 local backend = utils.split(ngx.shared.nedis:get(master_name),":")
-		 local ok,err = set_current_peer(backend[1],tonumber(backend[2]))
-		 if not ok then
-		     log(ERR,"failed to set the current peer sentinel-test err message:",err)
-		     return
-		 end
-		 log(DEBUG, "init redis link,current peer ",backend[1],":",backend[2])
-	 end
+		 log(DEBUG, "redis slave link,current peer ",backend[1],":",backend[2])		
+	end
 end
 
 return Nedis
